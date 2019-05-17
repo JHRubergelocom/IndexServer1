@@ -130,8 +130,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -205,7 +203,7 @@ public class IndexServer1 {
         try {
             ixConn = connFact.create("Administrator", "elo", "localhost", null);
         } catch (RemoteException ex) {
-            Logger.getLogger(IndexServer1.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
         }
 
         String parentId = "ARCPATH[(E10E1000-E100-E100-E100-E10E10E10E00)]:/Business Solutions/" + solution + "/ELOapps/ClientInfos";
@@ -231,10 +229,8 @@ public class IndexServer1 {
 
                     }
                 }
-            } catch (JSONException ex) {
+            } catch (JSONException | RemoteException ex) {
                 ex.printStackTrace();
-            } catch (RemoteException ex) {
-                Logger.getLogger(IndexServer1.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         dicApp.put("configApp", configApp);
@@ -249,7 +245,7 @@ public class IndexServer1 {
         try {
             ixConn = connFact.create("Administrator", "elo", "localhost", null);
         } catch (RemoteException ex) {
-            Logger.getLogger(IndexServer1.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
         }
 
         String ticket = ixConn.getLoginResult().getClientInfo().getTicket();
@@ -441,7 +437,7 @@ public class IndexServer1 {
         try {
             ed = conn.ix().checkoutSord(objId, EditInfoC.mbSord, LockC.NO);
         } catch (RemoteException ex) {
-            Logger.getLogger(IndexServer1.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
         }
         Sord sord = ed.getSord();
         System.out.println("id=" + sord.getId());
@@ -491,7 +487,7 @@ public class IndexServer1 {
             // Step 3
             doc.getDocs()[0].setUploadResult(conn.upload(doc.getDocs()[0].getUrl(), new File(file)));
         } catch (RemoteException ex) {
-            Logger.getLogger(IndexServer1.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
         }
 
         try {
@@ -1379,7 +1375,7 @@ public class IndexServer1 {
         fileName = "E:\\Temp\\Test2.txt";
 
         // Compute MD5 hash 
-        String md5 = "empty"; 
+        String md5 = ""; 
         try {
             md5 = conn.getFileMd5(new File(fileName));
         } catch (IOException ex) {
@@ -1523,7 +1519,7 @@ public class IndexServer1 {
 
         dv1 = ed.getDocument().getDocs()[0]; 
         // String file2 = System.IO.Path.GetTempFileName() + "." + dv1.getExt(); 
-        File file2 = new File("empty");        
+        File file2 = new File("");        
         try {
             file2 = File.createTempFile("test", "." + dv1.getExt());
         } catch (IOException ex) {
@@ -1658,7 +1654,7 @@ public class IndexServer1 {
         //Beispiel 50: Pfad mit zusätzlichen Eigenschaften anlegen
 
         // (1) read default storage mask for folder objects 
-        String folderMaskId = "empty"; 
+        String folderMaskId = ""; 
         DocMask folderMask = new DocMask();
         try {
             folderMaskId = conn.getCONST().getDOC_MASK().getGUID_FOLDER();
@@ -1876,16 +1872,30 @@ public class IndexServer1 {
         String folderId2 = InsertSord(conn, objId, "Folder2");
         String folderId3 = InsertSord(conn, objId, "Folder3"); 
 
-        // link Folder1 to Folder2 and Folder3 
-        conn.ix().linkSords(folderId1, new String[] {folderId2, folderId3}, null); 
+        try {
+            // link Folder1 to Folder2 and Folder3
+            conn.ix().linkSords(folderId1, new String[] {folderId2, folderId3}, null);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // read link information of Folder1 
         editZ = new EditInfoZ(0, new SordZ(SordC.mbLinks)); 
-        Sord folder1 = conn.ix().checkoutSord(folderId1, editZ, LockC.NO).getSord(); 
+        Sord folder1 = new Sord(); 
+        try {
+            folder1 = conn.ix().checkoutSord(folderId1, editZ, LockC.NO).getSord();
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // loop over link information 
         for (SordLink link : folder1.getLinksGoOut()) { 
-            Sord sord3 = conn.ix().checkoutSord(link.getId(), EditInfoC.mbSordLean, LockC.NO).getSord(); 
+            Sord sord3 = new Sord(); 
+            try {
+                sord3 = conn.ix().checkoutSord(link.getId(), EditInfoC.mbSordLean, LockC.NO).getSord();
+            } catch (RemoteException ex) {
+                ex.printStackTrace();
+            }
             System.out.println("linked sord.getName()=" + sord3.getName()); 
         }
 
@@ -1894,21 +1904,37 @@ public class IndexServer1 {
         String folderId7 = InsertSord(conn, objId, "Folder7"); 
         String subFolderId61 = InsertSord(conn, folderId6, "SubFolder61"); 
 
-        conn.ix().refSord(folderId6, folderId7, subFolderId61, -1);
+        try {
+            conn.ix().refSord(folderId6, folderId7, subFolderId61, -1);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 62: Verschieben und Anpassen der Berechtigungen
         CopyInfo copyInfo = new CopyInfo(); 
         copyInfo.setAdjustAclDifference(true); 
         copyInfo.setAdjustAclInBackground(true); 
-        conn.ix().copySord(folderId2, subFolderId41, copyInfo, CopySordC.MOVE);
+        try {
+            conn.ix().copySord(folderId2, subFolderId41, copyInfo, CopySordC.MOVE);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 63: Archiveintrag logisch löschen
         arcPath = "ARCPATH:/Tests";
-        ed = conn.ix().checkoutSord(arcPath, EditInfoC.mbOnlyId, LockC.NO);
+        try {
+            ed = conn.ix().checkoutSord(arcPath, EditInfoC.mbOnlyId, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         parentId = ed.getSord().getId() + ""; 
         objId = folderId7; 
-        conn.ix().deleteSord(parentId, objId, LockC.NO, null);
+        try {
+            conn.ix().deleteSord(parentId, objId, LockC.NO, null);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 64: Archiveintrag physikalisch löschen
         parentId = ed.getSord().getId() + "";
@@ -1917,7 +1943,11 @@ public class IndexServer1 {
         DeleteOptions delOpts = new DeleteOptions(); 
         delOpts.setDeleteFinally(true); 
 
-        conn.ix().deleteSord(parentId, objId, LockC.NO, delOpts);
+        try {
+            conn.ix().deleteSord(parentId, objId, LockC.NO, delOpts);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 65: Dauerhaftes Entfernen im Hintergrund
         delOpts = new DeleteOptions(); 
@@ -1971,7 +2001,12 @@ public class IndexServer1 {
         String subFolderId91 = InsertSord(conn, folderId9, "SubFolder91");
 
         // Step1: create example user 
-        UserInfo ui = conn.ix().createUser("");
+        UserInfo ui = new UserInfo();
+        try {
+            ui = conn.ix().createUser("");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         ui.setName("Fritz");
 
         try {
@@ -2019,7 +2054,12 @@ public class IndexServer1 {
 
         String jobGuid = BackgroundJobLoop(conn, navInfo, procInfo); 
 
-        JobState jobState = conn.ix().queryJobState(jobGuid, true, true, true); 
+        JobState jobState = new JobState(); 
+        try {
+            jobState = conn.ix().queryJobState(jobGuid, true, true, true);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         if (jobState != null) { 
             CountResult countResult = jobState.getProcInfo().getProcCountElem().getCountResult();
 
@@ -2032,19 +2072,33 @@ public class IndexServer1 {
         
     }
 
-    static void Verschlagwortung() throws RemoteException {
+    static void Verschlagwortung() {
         // Beispiel 70: Liste der Verschlagwortungsmasken
         IXConnFactory connFact = new IXConnFactory("http://srvpdevbs01vm:8030/ix-common/ix", "Verschlagwortung", "1.0");
-        IXConnection conn = connFact.create("Administrator", "ELObs!dev", "localhost", null);
+        IXConnection conn = (IXConnection) new Object();
+        try {
+            conn = connFact.create("Administrator", "ELObs!dev", "localhost", null);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         String arcPath = "ARCPATH:/Tests";
-        EditInfo ed = conn.ix().checkoutSord(arcPath, EditInfoC.mbOnlyId, LockC.NO);
+        EditInfo ed = new EditInfo();
+        try {
+            ed = conn.ix().checkoutSord(arcPath, EditInfoC.mbOnlyId, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
 
         String parentId = ed.getSord().getId() + ""; 
 
         EditInfoZ editZ = new EditInfoZ(EditInfoC.mbMaskNames, new SordZ());
-        ed = conn.ix().createSord(parentId, "", editZ); 
+        try { 
+            ed = conn.ix().createSord(parentId, "", editZ);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         for (MaskName mn : ed.getMaskNames()) { 
             boolean canRead = (mn.getAccess() & AccessC.LUR_READ) != 0; 
@@ -2059,7 +2113,12 @@ public class IndexServer1 {
         // Beispiel 71: Neue Verschlagwortungsmaske einfügen
 
         // Step1: initialize a DocMask object 
-        DocMask dm = conn.ix().createDocMask(""); 
+        DocMask dm = new DocMask(); 
+        try {
+            dm = conn.ix().createDocMask("");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         dm.setName("My keywording form"); 
 
         // Step2: set some options 
@@ -2096,8 +2155,12 @@ public class IndexServer1 {
         }
 
 
-        // Beispiel 71: Dokumenten- und Ablagedatum verwenden
-        ed = conn.ix().checkoutSord(parentId, EditInfoC.mbSord, LockC.NO);
+        try {
+            // Beispiel 71: Dokumenten- und Ablagedatum verwenden
+            ed = conn.ix().checkoutSord(parentId, EditInfoC.mbSord, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // --- To obtain Date objects from ISO Strings … 
         Date iDate = conn.isoToDate(ed.getSord().getIDateIso()); 
@@ -2107,18 +2170,31 @@ public class IndexServer1 {
         ed.getSord().setIDateIso(conn.dateToIso(iDate)); 
         ed.getSord().setXDateIso(conn.dateToIso(xDate));
 
-        // Beispiel 72: Maximallänge für Kurzbezeichnung und Zusatztext
-        int maxNameLength = conn.getCONST().getSORD().getLnName(); 
-        int maxDescLength = conn.getCONST().getSORD().getLnDesc();
+        try {
+            // Beispiel 72: Maximallänge für Kurzbezeichnung und Zusatztext
+            int maxNameLength = conn.getCONST().getSORD().getLnName();
+            int maxDescLength = conn.getCONST().getSORD().getLnDesc();
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 73: Funktion IXConnection.truncate
         Sord sord = ed.getSord();
-        boolean canStore = sord.getName().equals(conn.truncate(sord.getName(), conn.getCONST().getSORD().getLnName()));
+        boolean canStore;
+        try {
+            canStore = sord.getName().equals(conn.truncate(sord.getName(), conn.getCONST().getSORD().getLnName()));
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 74: Zusammenhang von DocMaskLine und ObjKey
         String objId = "86962";
         editZ = new EditInfoZ(EditInfoC.mbMask, SordC.mbLean);
-        ed = conn.ix().checkoutSord(objId, editZ, LockC.NO); 
+        try { 
+            ed = conn.ix().checkoutSord(objId, editZ, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         for (int i = 0; i < ed.getMask().getLines().length; i++) { 
             DocMaskLine dml = ed.getMask().getLines()[i]; 
             ObjKey okey = ed.getSord().getObjKeys()[i]; 
@@ -2143,7 +2219,12 @@ public class IndexServer1 {
         */
 
         // Beispiel 76: Maximale Anzahl der Zeichen für Indexwerte
-        int maxValueLength = conn.getCONST().getOBJ_KEY().getLnData();
+        int maxValueLength = 0;
+        try {
+            maxValueLength = conn.getCONST().getOBJ_KEY().getLnData();
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         String value = "GGGGGGGGGGGG";
         canStore = sord.getName().equals(conn.truncate(value, maxValueLength));
 
@@ -2169,7 +2250,11 @@ public class IndexServer1 {
             e.printStackTrace();
         } 
 
-        dm = conn.ix().createDocMask(""); 
+        try { 
+            dm = conn.ix().createDocMask("");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         dm.setName(maskName); 
         dm.getDetails().setFolderMask(false); 
         dm.getDetails().setFulltext(true); 
@@ -2180,7 +2265,11 @@ public class IndexServer1 {
         dm.getLines()[0].setKey("VALUE1"); 
         dm.getLines()[0].setType(DocMaskLineC.TYPE_NUMBER_F2); 
         dm.getLines()[0].setMax(6); 
-        dm.setId(conn.ix().checkinDocMask(dm, DocMaskC.mbAll, LockC.NO)); 
+        try { 
+            dm.setId(conn.ix().checkinDocMask(dm, DocMaskC.mbAll, LockC.NO));
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // This double value has to be stored: 
         double dblValue = 123.45; 
@@ -2188,14 +2277,26 @@ public class IndexServer1 {
         // Convert the double value into a String 
         String strValue = Double.toString(dblValue); 
 
-        // Create a Sord object and assign the numeric value 
-        ed = conn.ix().createSord(parentId, maskName, EditInfoC.mbSordLean); 
+        try {
+            // Create a Sord object and assign the numeric value
+            ed = conn.ix().createSord(parentId, maskName, EditInfoC.mbSordLean);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         ed.getSord().setName("numeric test"); 
         ed.getSord().getObjKeys()[0].setData(new String[] { strValue }); 
-        ed.getSord().setId(conn.ix().checkinSord(ed.getSord(), SordC.mbLean, LockC.NO)); 
+        try { 
+            ed.getSord().setId(conn.ix().checkinSord(ed.getSord(), SordC.mbLean, LockC.NO));
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
-        // Read the Sord object 
-        ed = conn.ix().checkoutSord(Integer.toString(ed.getSord().getId()), EditInfoC.mbSordLean, LockC.NO); 
+        try {
+            // Read the Sord object
+            ed = conn.ix().checkoutSord(Integer.toString(ed.getSord().getId()), EditInfoC.mbSordLean, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         String strValue2 = ed.getSord().getObjKeys()[0].getData()[0]; 
 
         // Convert the String value into a double value 
@@ -2203,13 +2304,22 @@ public class IndexServer1 {
 
         // Beispiel 80: Stichwortliste lesen
         String kwId = KeywordC.KWID_STANDARD_LIST; 
-        Keyword kw = conn.ix().checkoutKeywords(new String[] { kwId }, KeywordC.mbView, 1000, LockC.NO)[0]; 
+        Keyword kw = new Keyword(); 
+        try {
+            kw = conn.ix().checkoutKeywords(new String[] { kwId }, KeywordC.mbView, 1000, LockC.NO)[0];
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         DumpKeywordList(conn, 0, kw);
 
         // Beispiel 81: Stichwörter im EditInfo-Objekt
 
         objId = "86962";
-        ed = conn.ix().checkoutSord(objId, EditInfoC.mbAll, LockC.NO); 
+        try { 
+            ed = conn.ix().checkoutSord(objId, EditInfoC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         for (Keyword kw1 : ed.getKeywords()) { 
             System.out.println(kw1.getId() + ": " + kw1.getText()); 
@@ -2241,15 +2351,27 @@ public class IndexServer1 {
         kw.getChildren()[2].setText("three");
         kw.getChildren()[2].setEnabled(true); 
 
-        // store keyword list 
-        conn.ix().checkinKeywords(new Keyword[] { kw }, LockC.NO); 
+        try {
+            // store keyword list
+            conn.ix().checkinKeywords(new Keyword[] { kw }, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
-        // read keyword list and dump entries 
-        kw = conn.ix().checkoutKeywords(new String[] { kwRootId }, KeywordC.mbView, -1, LockC.NO)[0]; 
+        try {
+            // read keyword list and dump entries
+            kw = conn.ix().checkoutKeywords(new String[] { kwRootId }, KeywordC.mbView, -1, LockC.NO)[0];
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         DumpKeywordList(conn, 0, kw);
 
-        // --- insert a new list entry ---------------------------------- 
-        kw = conn.ix().checkoutKeywords(new String[] { kwRootId }, KeywordC.mbEdit, 0, LockC.IF_FREE)[0]; 
+        try {
+            // --- insert a new list entry ----------------------------------
+            kw = conn.ix().checkoutKeywords(new String[] { kwRootId }, KeywordC.mbEdit, 0, LockC.IF_FREE)[0];
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // create new list entry 
         Keyword kwNewChild = new Keyword(); 
@@ -2261,22 +2383,38 @@ public class IndexServer1 {
         lst.add(0, kwNewChild); 
         kw.setChildren((Keyword[])lst.toArray()); 
 
-        // store modified keyword list 
-        conn.ix().checkinKeywords(new Keyword[] { kw }, LockC.YES); 
+        try {
+            // store modified keyword list
+            conn.ix().checkinKeywords(new Keyword[] { kw }, LockC.YES);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
-        // read keyword list and dump entries 
-        kw = conn.ix().checkoutKeywords(new String[] { kwRootId }, KeywordC.mbView, -1, LockC.NO)[0];
+        try {
+            // read keyword list and dump entries
+            kw = conn.ix().checkoutKeywords(new String[] { kwRootId }, KeywordC.mbView, -1, LockC.NO)[0];
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         DumpKeywordList(conn, 0, kw);
 
-        // Beispiel 83: Stichwörter löschen
-
-        // delete keyword "two" 
-        conn.ix().deleteKeywords(new String[] { kw.getChildren()[2].getId() }, LockC.NO); 
-        kw = conn.ix().checkoutKeywords(new String[] { kwRootId }, KeywordC.mbView, -1, LockC.IF_FREE)[0]; 
+        try {
+            // Beispiel 83: Stichwörter löschen
+            
+            // delete keyword "two"
+            conn.ix().deleteKeywords(new String[] { kw.getChildren()[2].getId() }, LockC.NO);
+            kw = conn.ix().checkoutKeywords(new String[] { kwRootId }, KeywordC.mbView, -1, LockC.IF_FREE)[0]; 
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         DumpKeywordList(conn, 0, kw); 
 
-        // delete entire keyword list
-        conn.ix().deleteKeywords(new String[] { kwRootId }, LockC.NO); 
+        try {
+            // delete entire keyword list
+            conn.ix().deleteKeywords(new String[] { kwRootId }, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // throws an Exception 
         try {
@@ -2293,7 +2431,11 @@ public class IndexServer1 {
         CounterInfo ci = new CounterInfo(); 
         ci.setName("kwListCounter"); 
         ci.setValue(123); 
-        conn.ix().checkinCounters(new CounterInfo[] { ci }, LockC.NO);
+        try {
+            conn.ix().checkinCounters(new CounterInfo[] { ci }, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // --- create a keyword list using placeholders ----------------- 
 
@@ -2313,32 +2455,59 @@ public class IndexServer1 {
         kw.getChildren()[2].setText("Counter " + KeywordC.PLACEHOLDER_COUNTER_BEGIN + ci.getName() + KeywordC.PLACEHOLDER_COUNTER_END); 
         kw.getChildren()[2].setEnabled(true);
 
-        // store keyword list 
-        conn.ix().checkinKeywords(new Keyword[] { kw }, LockC.NO); 
+        try {
+            // store keyword list
+            conn.ix().checkinKeywords(new Keyword[] { kw }, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
-        // --- dump keyword list in edit and view mode ---------------
-
-        // read and dump keyword list in edit mode 
-        kw = conn.ix().checkoutKeywords(new String[] { kwRootId }, KeywordC.mbEdit, -1, LockC.NO)[0]; 
+        try {
+            // --- dump keyword list in edit and view mode ---------------
+            
+            // read and dump keyword list in edit mode
+            kw = conn.ix().checkoutKeywords(new String[] { kwRootId }, KeywordC.mbEdit, -1, LockC.NO)[0];
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         DumpKeywordList(conn, 0, kw);
 
-        // read and dump keyword list in view mode 
-        kw = conn.ix().checkoutKeywords(new String[] { kwRootId }, KeywordC.mbView, -1, LockC.NO)[0]; 
+        try {
+            // read and dump keyword list in view mode
+            kw = conn.ix().checkoutKeywords(new String[] { kwRootId }, KeywordC.mbView, -1, LockC.NO)[0];
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         DumpKeywordList(conn, 0, kw);
 
         // --- use keyword values ------------------------------------ 
 
         // use date value 
-        String kwDateValue = conn.ix().cookKeyword(kw.getChildren()[0].getId()); 
+        String kwDateValue = ""; 
+        try {
+            kwDateValue = conn.ix().cookKeyword(kw.getChildren()[0].getId());
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         System.out.println("kwDateValue=" + kwDateValue); 
 
         // use user value 
-        String kwUserValue = conn.ix().cookKeyword(kw.getChildren()[1].getId()); 
+        String kwUserValue = ""; 
+        try {
+            kwUserValue = conn.ix().cookKeyword(kw.getChildren()[1].getId());
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         System.out.println("kwUserValue=" + kwUserValue); 
 
         // use counter value 
         for (int i = 0; i < 10; i++) { 
-            String kwCounterValue = conn.ix().cookKeyword(kw.getChildren()[2].getId()); 
+            String kwCounterValue = ""; 
+            try {
+                kwCounterValue = conn.ix().cookKeyword(kw.getChildren()[2].getId());
+            } catch (RemoteException ex) {
+                ex.printStackTrace();
+            }
             System.out.println("kwCounterValue=" + kwCounterValue); // =123+i 
         }
 
@@ -2347,9 +2516,14 @@ public class IndexServer1 {
 
         // Beispiel 86: Farbe eines Sord-Objektes ändern
         objId = "96502";
-        ed = conn.ix().checkoutSord(objId, EditInfoC.mbOnlyId, LockC.YES); 
+        ColorData[] colors = new ColorData[]{};
+        try { 
+            ed = conn.ix().checkoutSord(objId, EditInfoC.mbOnlyId, LockC.YES);
+            colors = conn.ix().checkoutColors(LockC.NO); 
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
-        ColorData[] colors = conn.ix().checkoutColors(LockC.NO); 
         for (ColorData color : colors) {
             if (color.getName().toLowerCase().equals("green")) {
                 ed.getSord().setKind(color.getId());
@@ -2360,26 +2534,40 @@ public class IndexServer1 {
         // Beispiel 87: Cache aus Color-Objekten erstellen
         Sord[] sords = new Sord[] { ed.getSord() };
 
-        Map<Integer, Color> colorCache = MakeColorCache(conn); 
-
+        Map<Integer, Color> colorCache = MakeColorCache(conn);            
+        
         for (Sord sord1 : sords) { 
             Color color = colorCache.get(0);
             colorCache.getOrDefault(sord1.getKind(), color);            
         }
 
-        conn.ix().checkinSord(ed.getSord(), new SordZ(SordC.mbKind), LockC.YES);
+        try {
+            conn.ix().checkinSord(ed.getSord(), new SordZ(SordC.mbKind), LockC.YES);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
     }
 
-    static void BerechtigungenAclItems() throws RemoteException {
+    static void BerechtigungenAclItems() {
         // Beispiel 88: Berechtigungsliste ausgeben
         IXConnFactory connFact = new IXConnFactory("http://srvpdevbs01vm:8030/ix-common/ix", "BerechtigungenAclItems", "1.0");
-        IXConnection conn = connFact.create("Administrator", "ELObs!dev", "localhost", null);
+        IXConnection conn = (IXConnection) new Object();
+        try {
+            conn = connFact.create("Administrator", "ELObs!dev", "localhost", null);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         // IXConnection conn = connFact.create("NormalerUser", "elo", "localhost", null);
         String objId = "96649";
 
         EditInfoZ editZ = new EditInfoZ(0L, new SordZ(SordC.mbAclItems));
-        EditInfo ed = conn.ix().checkoutSord(objId, editZ, LockC.NO); 
+        EditInfo ed = new EditInfo(); 
+        try {
+            ed = conn.ix().checkoutSord(objId, editZ, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         DumpAcl(ed.getSord().getAclItems());
 
@@ -2414,11 +2602,16 @@ public class IndexServer1 {
 
         // read sords 
         editZ = new EditInfoZ(0L, new SordZ(SordC.mbAclItems)); 
-        EditInfo ed1 = conn.ix().checkoutSord(objId1, editZ, LockC.NO); 
-        EditInfo ed2 = conn.ix().checkoutSord(objId2, editZ, LockC.NO);
+        CombineAclResult res = new CombineAclResult(); 
+        try {
+            EditInfo ed1 = conn.ix().checkoutSord(objId1, editZ, LockC.NO);
+            EditInfo ed2 = conn.ix().checkoutSord(objId2, editZ, LockC.NO);
+            // compare acls
+            res = conn.ix().combineAcl(ed1.getSord().getAclItems(), ed2.getSord().getAclItems(), null);            
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
-        // compare acls
-        CombineAclResult res = conn.ix().combineAcl(ed1.getSord().getAclItems(), ed2.getSord().getAclItems(), null);
 
         // print results 
         System.out.println("comparison result:"); 
@@ -2439,7 +2632,12 @@ public class IndexServer1 {
 
         // Beispiel 91: Zugriffsprüfung auf Workflow-Vorlage
         String flowId = "1847"; 
-        WFDiagram wf = conn.ix().checkoutWorkFlow(flowId, WFTypeC.TEMPLATE, WFDiagramC.mbAll, LockC.NO);
+        WFDiagram wf = new WFDiagram();
+        try {
+            wf = conn.ix().checkoutWorkFlow(flowId, WFTypeC.TEMPLATE, WFDiagramC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         int access = wf.getAccess(); 
         if ((access & AccessC.LUR_READ) != 0) { 
@@ -2466,10 +2664,15 @@ public class IndexServer1 {
         }
     }
 
-    static void SucheNachOrdnernUndDokumenten() throws RemoteException {
+    static void SucheNachOrdnernUndDokumenten() {
         IXConnFactory connFact = new IXConnFactory("http://srvpdevbs01vm:8030/ix-common/ix", "SucheNachOrdnernUndDokumenten", "1.0");
         // IXConnection conn = connFact.create("Administrator", "ELObs!dev", "localhost", null);
-        IXConnection conn = connFact.create("NormalerUser", "elo", "localhost", null);
+        IXConnection conn = (IXConnection) new Object();
+        try {
+            conn = connFact.create("NormalerUser", "elo", "localhost", null);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 93: Suche nach Kurzbezeichnung
         FindInfo findInfo = new FindInfo(); 
@@ -2609,24 +2812,38 @@ public class IndexServer1 {
                 findResult = conn.ix().findNextSords(findResult.getSearchId(), idx, max, SordC.mbLean); 
             } 
         } 
-        finally { 
+        catch (RemoteException ex) { 
+            ex.printStackTrace();
+        }        finally { 
             if (findResult != null) { 
-                conn.ix().findClose(findResult.getSearchId()); 
+                try { 
+                    conn.ix().findClose(findResult.getSearchId());
+                } catch (RemoteException ex) {
+                    ex.printStackTrace();
+                }
             } 
         }
 
         // Beispiel 107: ELO iSearch über Dokumentinhalt und Ablagedatum
         FindDirect findDirect = new FindDirect(); 
-        findDirect.setQuery("buch " + conn.getCONST().getFIND_DIRECT().getFIELD_IDATE_YEAR() + ":[2009 TO 2011]"); 
+        try { 
+            findDirect.setQuery("buch " + conn.getCONST().getFIND_DIRECT().getFIELD_IDATE_YEAR() + ":[2009 TO 2011]");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         findDirect.setSearchInFulltext(true);
 
         // Beispiel 108: ELO iSearch über Dokumentinhalt und Indexwert
-        DocMask dm = conn.ix().checkoutDocMask(conn.getCONST().getDOC_MASK().getGUID_FOLDER(), DocMaskC.mbAll, LockC.NO);
-        findDirect = new FindDirect(); 
-        findDirect.setQuery("Geistiges Eigentum " 
-                  + conn.getCONST().getFIND_DIRECT().getFIELD_OBJ_KEY()
-                  + dm.getLines()[0].getKey() // group name of index value
-                  + ":\"zu Guttenberg\""); 
+        try {
+            DocMask dm = conn.ix().checkoutDocMask(conn.getCONST().getDOC_MASK().getGUID_FOLDER(), DocMaskC.mbAll, LockC.NO);
+            findDirect = new FindDirect(); 
+            findDirect.setQuery("Geistiges Eigentum " 
+                      + conn.getCONST().getFIND_DIRECT().getFIELD_OBJ_KEY()
+                      + dm.getLines()[0].getKey() // group name of index value
+                      + ":\"zu Guttenberg\""); 
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         findDirect.setSearchInFulltext(true);
 
         // Beispiel 109: Füllen eines Kontextors
@@ -2642,7 +2859,12 @@ public class IndexServer1 {
         findInfo.getFindDirect().setQuery("*");
 
         max = 10; 
-        ContextTerm[] terms = conn.ix().getContextTerms(findInfo, conn.getCONST().getFIND_DIRECT().getFIELD_XDATE_YEAR(), max); 
+        ContextTerm[] terms = new ContextTerm[]{}; 
+        try {
+            terms = conn.ix().getContextTerms(findInfo, conn.getCONST().getFIND_DIRECT().getFIELD_XDATE_YEAR(), max);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         for (ContextTerm term : terms) {
             System.out.println("term=" + term.getTerm() + ", #=" + term.getDocNum()); 
         }
@@ -2658,7 +2880,12 @@ public class IndexServer1 {
 
         // findInfo.getFindDirect().setQuery() = "Geist";
         findInfo.getFindDirect().setQuery("G");
-        String[] terms1 = conn.ix().getSearchTerms(findInfo, SearchTermsC.TERMS);
+        String[] terms1 = new String[]{};
+        try {
+            terms1 = conn.ix().getSearchTerms(findInfo, SearchTermsC.TERMS);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         for (String terms11 : terms1) {
             System.out.println("term=" + terms11);
@@ -2701,14 +2928,24 @@ public class IndexServer1 {
         findInfo.setFindByVersion(new FindByVersion()); 
         findInfo.getFindByVersion().setVersionMD5("0570377732E47BC044E7CC8181F6E1ED");
 
-        FindResult fr = conn.ix().findFirstSords(findInfo, 100, SordC.mbMin);
+        FindResult fr = new FindResult();
+        try {
+            fr = conn.ix().findFirstSords(findInfo, 100, SordC.mbMin);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         for (Sord sord : fr.getSords()) {
             System.out.println("sord: " + sord.getId() + " ," + sord.getName());
         }
 
         // Beispiel 116: Auflisten der Berechtigungen innerhalb eines Ordners
         String arcPath = "ARCPATH:/Tests";
-        EditInfo ed = conn.ix().checkoutSord(arcPath, EditInfoC.mbOnlyId, LockC.NO);
+        EditInfo ed = new EditInfo();
+        try {
+            ed = conn.ix().checkoutSord(arcPath, EditInfoC.mbOnlyId, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         String parentId = ed.getSord().getId() + "";
         findInfo = new FindInfo(); 
@@ -2718,7 +2955,11 @@ public class IndexServer1 {
         findInfo.setFindByAcl(new FindByAcl()); 
         findInfo.getFindByAcl().setDistinctAcl(true); 
 
-        fr = conn.ix().findFirstSords(findInfo, 1000, SordC.mbMin);
+        try {
+            fr = conn.ix().findFirstSords(findInfo, 1000, SordC.mbMin);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         //while (true)
         //{
             for (Sord sord : fr.getSords()) {
@@ -2735,7 +2976,11 @@ public class IndexServer1 {
 
         findInfo.setFindOptions(new FindOptions()); 
         findInfo.getFindOptions().setEvalCount(true);
-        fr = conn.ix().findFirstSords(findInfo, 10, SordC.mbMin); 
+        try { 
+            fr = conn.ix().findFirstSords(findInfo, 10, SordC.mbMin);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         System.out.println("count=" + fr.getCount());
 
         // Beispiel 118: Sortierung der Suchergebnisse
@@ -2776,12 +3021,22 @@ public class IndexServer1 {
         findInfo.getFindOptions().setTotalCount(Integer.MAX_VALUE);
     }
 
-    static void EbenenUndDokumenttypenSordTypes() throws RemoteException {
+    static void EbenenUndDokumenttypenSordTypes() {
         IXConnFactory connFact = new IXConnFactory("http://srvpdevbs01vm:8030/ix-common/ix", "EbenenUndDokumenttypenSordTypes", "1.0");
-        IXConnection conn = connFact.create("NormalerUser", "elo", "localhost", null);
+        IXConnection conn = (IXConnection) new Object();
+        try {
+            conn = connFact.create("NormalerUser", "elo", "localhost", null);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 124: Ebenen- und Dokumenttypen lesen
-        SordType[] sordTypes = conn.ix().checkoutSordTypes(null, SordTypeC.mbAllJPG, LockC.NO); 
+        SordType[] sordTypes = new SordType[]{}; 
+        try {
+            sordTypes = conn.ix().checkoutSordTypes(null, SordTypeC.mbAllJPG, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         for (SordType sordType : sordTypes) { 
             System.out.println("name=" + sordType.getName() + ", id=" + sordType.getId() + ", icon=" + sordType.getIcon().getContentType() + ", #bytes=" + sordType.getIcon().getData().length); 
             boolean isDocNotFolderType; 
@@ -2796,16 +3051,26 @@ public class IndexServer1 {
         }
     }
 
-    static void RandnotizenAnmerkungenStempelUndSchwaerzungen() throws RemoteException {
+    static void RandnotizenAnmerkungenStempelUndSchwaerzungen() {
 
         IXConnFactory connFact = new IXConnFactory("http://srvpdevbs01vm:8030/ix-common/ix", "RandnotizenAnmerkungenStempelUndSchwaerzungen", "1.0");
-        IXConnection conn = connFact.create("Administrator", "ELObs!dev", "localhost", null);
+        IXConnection conn = (IXConnection) new Object();
+        try {
+            conn = connFact.create("Administrator", "ELObs!dev", "localhost", null);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         String objId = "66314";
 
         // Indexserver Url
 
         // Beispiel 126: Randnotizen und Attachments lesen
-        Note[] notes = conn.ix().checkoutNotes(objId, null, NoteC.mbAll, LockC.NO); 
+        Note[] notes = new Note[]{}; 
+        try {
+            notes = conn.ix().checkoutNotes(objId, null, NoteC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         for (Note note : notes) { 
             System.out.println("note.getId()=" + note.getId() + ", note.getType()=" + note.getType()); 
             String text = note.getDesc(); 
@@ -2816,24 +3081,49 @@ public class IndexServer1 {
         } 
 
         EditInfoZ editZ = new EditInfoZ(EditInfoC.mbNoteMembers, null); 
-        EditInfo ed = conn.ix().checkoutSord(objId, editZ, LockC.NO); 
+        EditInfo ed = new EditInfo(); 
+        try {
+            ed = conn.ix().checkoutSord(objId, editZ, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         for (Note note : ed.getNotes()) {
             
         }
         objId = "99157";
 
         // Beispiel 127: Randnotiz anlegen
-        Note publicNote = conn.ix().createNote2(objId, NoteC.TYPE_NORMAL, ""); 
+        Note publicNote = new Note(); 
+        try {
+            publicNote = conn.ix().createNote2(objId, NoteC.TYPE_NORMAL, "");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         publicNote.setDesc("Public note"); 
 
-        Note privateNote = conn.ix().createNote2(objId, NoteC.TYPE_PERSONAL, ""); 
+        Note privateNote = new Note(); 
+        try {
+            privateNote = conn.ix().createNote2(objId, NoteC.TYPE_PERSONAL, "");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         privateNote.setDesc("Private note"); 
 
-        Note stampNote = conn.ix().createNote2(objId, NoteC.TYPE_STAMP, ""); 
+        Note stampNote = new Note(); 
+        try {
+            stampNote = conn.ix().createNote2(objId, NoteC.TYPE_STAMP, "");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();            
+        }
         stampNote.setDesc("Stamp"); 
 
         notes = new Note[] { publicNote, privateNote, stampNote }; 
-        int[] noteIds = conn.ix().checkinNotes(objId, notes, NoteC.mbAll, LockC.NO); 
+        int[] noteIds = new int[]{}; 
+        try {
+            noteIds = conn.ix().checkinNotes(objId, notes, NoteC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         for (int i = 0; i < noteIds.length; i++) { 
             notes[i].setId(noteIds[i]); 
@@ -2841,7 +3131,12 @@ public class IndexServer1 {
         }
 
         // Beispiel 128: Textbox-Anmerkung anlegen
-        Note annNote = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_NOTE_WITHFONT, "");
+        Note annNote = new Note();
+        try {
+            annNote = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_NOTE_WITHFONT, "");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         annNote.getNoteText().setText("TYPE\n\nANNOTATION NOTE WITHFONT");
 
@@ -2855,10 +3150,19 @@ public class IndexServer1 {
         annNote.getNoteText().getFontInfo().setFaceName("Courier");
         annNote.getNoteText().getFontInfo().setItalic(true);
 
-        conn.ix().checkinNotes(objId, new Note[] { annNote }, NoteC.mbAll, LockC.NO);
+        try {
+            conn.ix().checkinNotes(objId, new Note[] { annNote }, NoteC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 129: Text-Anmerkung anlegen
-        Note annTextNote = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_TEXT, "");
+        Note annTextNote = new Note();
+        try {
+            annTextNote = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_TEXT, "");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         annTextNote.getNoteText().setText("Text without background");
 
@@ -2870,10 +3174,19 @@ public class IndexServer1 {
         annTextNote.getNoteText().getFontInfo().setFaceName("Arial");
         annTextNote.getNoteText().getFontInfo().setHeight(20);
 
-        conn.ix().checkinNotes(objId, new Note[] { annTextNote }, NoteC.mbAll, LockC.NO);
+        try {
+            conn.ix().checkinNotes(objId, new Note[] { annTextNote }, NoteC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 132: Horizontale Linie anlegen
-        Note hline = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_HORIZONTAL_LINE, ""); 
+        Note hline = new Note(); 
+        try {
+            hline = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_HORIZONTAL_LINE, "");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         PointInfo p1 = new PointInfo(); 
         p1.setX(60); 
@@ -2886,12 +3199,19 @@ public class IndexServer1 {
         hline.getNoteFreehand().setWidth(20);
 
         hline.setColor(0xC1FFC2); // red=0xC2, green=0xFF, blue=0xC1 
-
-        conn.ix().checkinNotes(objId, new Note[] { hline }, NoteC.mbAll, LockC.NO);
+        try {
+            conn.ix().checkinNotes(objId, new Note[] { hline }, NoteC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 130: Horizontale Überdeckungslinie anlegen
         objId = "99172";
-        hline = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_STRIKEOUT, ""); 
+        try { 
+            hline = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_STRIKEOUT, "");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         p1 = new PointInfo(); 
         p1.setX(60); 
         p1.setY(200); 
@@ -2904,11 +3224,20 @@ public class IndexServer1 {
         hline.getNoteFreehand().setStrikeoutWidth(30);
 
         hline.setColor(0x80FFFF); // red=0xFF, green=0xFF, blue=0x80 
-        conn.ix().checkinNotes(objId, new Note[] { hline }, NoteC.mbAll, LockC.NO);
+        try {
+            conn.ix().checkinNotes(objId, new Note[] { hline }, NoteC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 131: Freihandlinie anlegen
         objId = "99174";
-        Note fline = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_FREEHAND, ""); 
+        Note fline = new Note(); 
+        try {
+            fline = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_FREEHAND, "");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         List<PointInfo> points = new LinkedList<>(); 
         for (int i = 0; i < 360; i += 5) { 
@@ -2923,13 +3252,21 @@ public class IndexServer1 {
         fline.getNoteFreehand().setWidth(10);
 
         fline.setColor(0xC1FFC2); // red=0xC2, green=0xFF, blue=0xC1 
-
-        conn.ix().checkinNotes(objId, new Note[] { fline }, NoteC.mbAll, LockC.NO);
+        try {
+            conn.ix().checkinNotes(objId, new Note[] { fline }, NoteC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 132: Markierungsrechteck einfügen
         objId = "99328";
 
-        Note rect = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_MARKER, "");
+        Note rect = new Note();
+        try {
+            rect = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_MARKER, "");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         rect.setXPos(60);
         rect.setYPos(170);
@@ -2937,10 +3274,19 @@ public class IndexServer1 {
         rect.setHeight(50);
 
         rect.setColor(0xC1FFC2); // red=0xC2, green=0xFF, blue=0xC1 
-        conn.ix().checkinNotes(objId, new Note[] { rect }, NoteC.mbAll, LockC.NO);
+        try {
+            conn.ix().checkinNotes(objId, new Note[] { rect }, NoteC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 133: Anmerkung mit Berechtigungsliste
-        Note rectacl = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_TEXT, "");
+        Note rectacl = new Note();
+        try {
+            rectacl = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_TEXT, "");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         rectacl.getNoteText().setText("Text without background");
 
@@ -2957,10 +3303,19 @@ public class IndexServer1 {
         rectacl.getAclItems()[1].setId(UserInfoC.ID_EVERYONE_GROUP);
         rectacl.getAclItems()[1].setAccess(AccessC.LUR_READ);
 
-        conn.ix().checkinNotes(objId, new Note[] { rectacl }, NoteC.mbAll, LockC.NO);
+        try {
+            conn.ix().checkinNotes(objId, new Note[] { rectacl }, NoteC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 134: Schwärzung anlegen
-        Note black = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_MARKER, "");
+        Note black = new Note();
+        try {
+            black = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_MARKER, "");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         /*
         black.setXPos() = 100;
         black.setYPos() = 1378;
@@ -2979,13 +3334,22 @@ public class IndexServer1 {
 
         black.setColor(NoteC.COLOR_ANNOTATION_MARKER_DM);
 
-        conn.ix().checkinNotes(objId, new Note[] { black }, NoteC.mbAll, LockC.NO);
+        try {
+            conn.ix().checkinNotes(objId, new Note[] { black }, NoteC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 135: Stempeldefinition für einen Bildstempel anlegen
         String fileDir = "E:\\Temp\\";
         String fileName = "user.jpg";
 
-        NoteTemplate noteTemplate = conn.ix().createNoteTemplate(NoteTemplateC.USERID_ALL); 
+        NoteTemplate noteTemplate = new NoteTemplate(); 
+        try {
+            noteTemplate = conn.ix().createNoteTemplate(NoteTemplateC.USERID_ALL);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         noteTemplate.setName("Image Stamp"); 
 
@@ -3013,8 +3377,12 @@ public class IndexServer1 {
             e.printStackTrace();
         }
 
-        // Beispiel 136: Stempeldefinition für einen Textstempel
-        noteTemplate = conn.ix().createNoteTemplate(NoteTemplateC.USERID_ALL);
+        try {
+            // Beispiel 136: Stempeldefinition für einen Textstempel
+            noteTemplate = conn.ix().createNoteTemplate(NoteTemplateC.USERID_ALL);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         noteTemplate.setName("Text Stamp"); 
 
         noteTemplate.setNoteText(new NoteText()); 
@@ -3034,7 +3402,12 @@ public class IndexServer1 {
         }
 
         // Beispiel 137: Verfügbare Stempel auflisten
-        NoteTemplate[] noteTemplates = conn.ix().checkoutNoteTemplates("", null, NoteTemplateC.mbMin, LockC.NO); 
+        NoteTemplate[] noteTemplates = new NoteTemplate[]{}; 
+        try {
+            noteTemplates = conn.ix().checkoutNoteTemplates("", null, NoteTemplateC.mbMin, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         for (NoteTemplate noteTemplate1 : noteTemplates) {
             System.out.println("name=" + noteTemplate1.getName()); 
             if (noteTemplate1.getNoteImage() != null) { 
@@ -3055,17 +3428,31 @@ public class IndexServer1 {
         }
 
         // Beispiel 139: Stempel aufbringen
-        Note note1 = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_TEXT, "Image Stamp"); 
+        Note note1 = new Note(); 
+        try {
+            note1 = conn.ix().createNote2(objId, NoteC.TYPE_ANNOTATION_TEXT, "Image Stamp");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         note1.setXPos(5);
         note1.setYPos(5); 
-        conn.ix().checkinNotes(objId, new Note[] { note1 }, NoteC.mbAll, LockC.NO);
+        try {
+            conn.ix().checkinNotes(objId, new Note[] { note1 }, NoteC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
     }
 
-    static void Workflows() throws RemoteException {
+    static void Workflows() {
         IXConnFactory connFact = new IXConnFactory("http://srvpdevbs01vm:8030/ix-common/ix", "Workflows", "1.0");
-        IXConnection conn = connFact.create("Administrator", "ELObs!dev", "localhost", null);
-        // IXConnection conn = connFact.create("NormalerUser", "elo", "localhost", null);
-        // IXConnection conn = connFact.create("Unittest", "elo", "localhost", null);
+        IXConnection conn = (IXConnection) new Object();
+        try {
+            conn = connFact.create("Administrator", "ELObs!dev", "localhost", null);
+            // IXConnection conn = connFact.create("NormalerUser", "elo", "localhost", null);
+            // IXConnection conn = connFact.create("Unittest", "elo", "localhost", null);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 140: Ad-hoc-Workflow starten, parallel, Zur Kenntnisnahme
         String objId = "99328";
@@ -3117,10 +3504,15 @@ public class IndexServer1 {
         // Beispiel 145: Selbstdefinierten Workflow starten
         // read workflow template 
         String workflowTemplate = "Test";
-        WFDiagram wf = conn.ix().checkoutWorkFlow(workflowTemplate, 
-                                            WFTypeC.TEMPLATE, 
-                                            WFDiagramC.mbAll, 
-                                            LockC.NO);
+        WFDiagram wf = new WFDiagram();
+        try {
+            wf = conn.ix().checkoutWorkFlow(workflowTemplate, 
+                    WFTypeC.TEMPLATE,
+                    WFDiagramC.mbAll,
+                    LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // convert to active workflow 
         wf.setType(WFTypeC.ACTIVE); 
@@ -3134,8 +3526,12 @@ public class IndexServer1 {
         // assign an object ID 
         wf.setObjId(objId);
 
-        // checkin and start 
-        conn.ix().checkinWorkFlow(wf, WFDiagramC.mbAll, LockC.NO);
+        try {
+            // checkin and start
+            conn.ix().checkinWorkFlow(wf, WFDiagramC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 146: Eigene Workflowaufgaben sammeln
         FindTasksInfo findInfo = new FindTasksInfo(); 
@@ -3175,11 +3571,17 @@ public class IndexServer1 {
                 findResult = conn.ix().findNextTasks(findResult.getSearchId(), idx, max); 
             } 
         }
-        finally 
-        { 
+        catch (RemoteException ex) { 
+            ex.printStackTrace();
+        }        
+        finally { 
             if (findResult != null) 
             { 
-                conn.ix().findClose(findResult.getSearchId()); 
+                try { 
+                    conn.ix().findClose(findResult.getSearchId());
+                } catch (RemoteException ex) {
+                    ex.printStackTrace();
+                }
             } 
         }
 
@@ -3323,22 +3725,34 @@ public class IndexServer1 {
         findWfInfo.setOverTimeLimit(true);
         FindWfLoop(conn, findWfInfo);
 
-        // Beispiel 159: Einfache Workflow-Vorlage erstellen
-        // Initialize workflow object. 
-        wf = conn.ix().createWorkFlow("Simple Workflow", WFTypeC.TEMPLATE); 
+        try {
+            // Beispiel 159: Einfache Workflow-Vorlage erstellen
+            // Initialize workflow object.
+            wf = conn.ix().createWorkFlow("Simple Workflow", WFTypeC.TEMPLATE);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // ---- Create the workflow nodes ------- 
 
         // Create an array to store the workflow nodes 
         wf.setNodes(new WFNode[2]);
 
-        // Create the start node 
-        wf.getNodes()[0] = conn.ix().createWFNode(0, WFNodeC.TYPE_BEGINNODE); 
+        try {
+            // Create the start node
+            wf.getNodes()[0] = conn.ix().createWFNode(0, WFNodeC.TYPE_BEGINNODE);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         wf.getNodes()[0].setName("Start node"); 
 
-        // Create a person node. 
-        // Here: a task for the user that starts the workflow 
-        wf.getNodes()[1] = conn.ix().createWFNode(1, WFNodeC.TYPE_PERSONNODE); 
+        try {
+            // Create a person node.
+            // Here: a task for the user that starts the workflow
+            wf.getNodes()[1] = conn.ix().createWFNode(1, WFNodeC.TYPE_PERSONNODE);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         wf.getNodes()[1].setName("Todo"); 
         wf.getNodes()[1].setUserId(WFNodeC.USERID_OWNER); 
 
@@ -3388,7 +3802,12 @@ public class IndexServer1 {
         String fileName = "E:\\Temp\\wf.txt";
         WorkflowExportOptions wfOpt = new WorkflowExportOptions();
         wfOpt.setFlowId("Simple Workflow");
-        FileData fd = conn.ix().exportWorkflow(wfOpt);
+        FileData fd = new FileData();
+        try {
+            fd = conn.ix().exportWorkflow(wfOpt);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         byte[] data = fd.getData();
         try (OutputStream os = new FileOutputStream(fileName)) {
             os.write(data);
@@ -3408,9 +3827,13 @@ public class IndexServer1 {
             ex.printStackTrace();
         }
         
-        int wfId = conn.ix().importWorkFlow("abc", data); 
+        try {
+            int wfId = conn.ix().importWorkFlow("abc", data);
+            wf = conn.ix().checkoutWorkFlow("" + wfId, WFTypeC.TEMPLATE, WFDiagramC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
-        wf = conn.ix().checkoutWorkFlow("" + wfId, WFTypeC.TEMPLATE, WFDiagramC.mbAll, LockC.NO);
 
         // Beispiel 163: Workflow-Vorlage löschen
         // conn.ix().deleteWorkFlow("abc", WFTypeC.TEMPLATE, LockC.NO);
@@ -3420,7 +3843,12 @@ public class IndexServer1 {
         wf.getVersion().setId(-1); // create new version 
         wf.getVersion().setVersion("1.0"); 
         wf.getVersion().setVersion("My comment"); 
-        int[] wfIds = conn.ix().checkinWorkflowTemplate(wf, WFDiagramC.mbAll, LockC.NO); 
+        int[] wfIds = new int[]{}; 
+        try {
+            wfIds = conn.ix().checkinWorkflowTemplate(wf, WFDiagramC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         System.out.println("workflow.getId()=" + wfIds[0] + ", version.getId()=" + wfIds[1]);
 
@@ -3429,283 +3857,310 @@ public class IndexServer1 {
 
         // Beispiel 166: Arbeitsversion einer Workflow-Vorlage setzen
         String flowId = "abc";
-        WFDiagram wfOld = conn.ix().checkoutWorkflowTemplate(flowId, "", WFDiagramC.mbAll, LockC.NO); 
-        WFDiagram wfNew = conn.ix().checkoutWorkflowTemplate(flowId, "1", WFDiagramC.mbAll, LockC.NO); 
+        WFDiagram wfOld = new WFDiagram(); 
+        WFDiagram wfNew = new WFDiagram();
+        try {
+            wfOld = conn.ix().checkoutWorkflowTemplate(flowId, "", WFDiagramC.mbAll, LockC.NO);
+            wfNew = conn.ix().checkoutWorkflowTemplate(flowId, "1", WFDiagramC.mbAll, LockC.NO); 
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // save old work version 
         wfOld.getVersion().setId(-1); 
-        conn.ix().checkinWorkflowTemplate(wfOld, WFDiagramC.mbAll, LockC.NO); 
+        try { 
+            conn.ix().checkinWorkflowTemplate(wfOld, WFDiagramC.mbAll, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // assign new work version 
         wfNew.getVersion().setId(0);
-        conn.ix().checkinWorkflowTemplate(wfNew, WFDiagramC.mbAll, LockC.NO);
-
-        // Beispiel 167: Definition der Funktionen onEnterNode und onExitNode
-        /** 
-         * Indexserver calls this function if a workflow node is activated 
-         * @param ci ClientInfo object with language, country and ticket 
-         * @param userId The calling users ID (Integer) 
-         * @param workflow WFDiagram object 
-         * @param nodeId The activated node ID (Integer) 
-         * @return Cycle nodes: true, to repeat the cycle. 
-         */ 
-        // function onEnterNode(ci, userId, workflow, nodeId) { 
-        // }
-
-        /** 
-         * Indexserver calls this function if a workflow node is 
-         * deactivated 
-         * @param ci ClientInfo object with language, country and ticket 
-         * @param userId The calling users ID (Integer) * 
-         * @param workflow WFDiagram object 
-         * @param nodeId The activated node ID (Integer) 
-         */ 
-        // function onExitNode(ci, userId, workflow, nodeId) { 
-        // }
-
-        // Beispiel 168: Verschlagwortungsdaten im Skript ändern
-        /*
-        function onEnterNode(ci, userId, workflow, nodeId) { 
-            var ed = ix.checkoutSord(ci, workflow.getObjId(), CONST.EDIT_INFO.mbSord, CONST.LOCK.YES); 
-            ed.getSord().getDesc() = "This text was written inside the Script"; 
-            ix.checkinSord(ci, ed.getSord(), CONST.SORD.mbAll, CONST.LOCK.YES); 
-        }
-        */
-
-        // Beispiel 169: Dokumentzuordnung im Workflow-Skript ändern
-        /*
-        function onExitNode(ci, userId, workflow, nodeId) { 
-            if (log.isDebugEnabled()) log.debug("onExitNode("); 
-
-            var ed = ix.checkoutSord(ci, workflow.getObjId(), CONST.EDIT_INFO.mbSord, CONST.LOCK.YES); 
-
-            // new object ID is found in sord.getDesc() 
-            var newObjId = ed.getSord().getDesc(); 
-            workflow.getObjId()=newObjId; 
-            if (log.isDebugEnabled()) log.debug("new wf.getObjId()=" + newObjId); 
-
-            // update internal workflow data 
-            workflow.dbHelper.updateDisplayMembers(true); 
-
-            if (log.isDebugEnabled()) log.debug(")onExitNode"); 
-        }
-        */
-
-        // Beispiel 170: Anwender und Datumsangaben im Skript ändern
-        /*
-        function onExitNode(ci, userId, workflow, nodeId) { 
-            workflow.getNodes()[2].userName = "Maria"; 
-            workflow.getNodes()[2].userDelayDateIso = "20091211100908"; 
-            workflow.dbHelper.updateDisplayMembers(true); 
-        }
-        */
-
-        // Beispiel 171: Knoten im Skript aktivieren
-        /*
-        function onExitNode(ci, userId, workflow, nodeId) { 
-            for (var i = 0; i < workflow.getNodes().length; i++) { 
-                var node = workflow.getNodes()[i]; 
-                if (node.getName() == "Invocie accepted") { 
-                    node.isNext = 1; 
-                    break; 
-                } 
-            } 
-        }
-        */
-
-        // Beispiel 172: Workflow-Skript zum Einfügen eines Knotens
-        /*
-        function onExitNode(ci, userId, workflow, nodeId) { 
-            if (log.isDebugEnabled()) log.debug("onExitNode("); 
-
-            // (1) Initialize a new node object 
-            var node = ix.createWFNode(ci, 0, Packages.de.elo.ix.client.WFNodeC.TYPE_PERSONNODE); 
-            node.getName() = "New"; node.userName = "Administrator"; 
-
-            // (2) Place the new node to the right of the dummy node. 
-            var dummyNode = getNode(workflow, 2); 
-            node.posX = dummyNode.posX + 200; 
-            node.posY = dummyNode.posY; 
-
-            // (3) Add the node (node.getId() is set) 
-            addNode(workflow, node); 
-
-            // (4) Remove the association from "Dummy" to "End" 
-            removeAssoc(workflow, 2, 3); 
-
-            // (5) Add an association from "Dummy" to "New" 
+        try {
+            conn.ix().checkinWorkflowTemplate(wfNew, WFDiagramC.mbAll, LockC.NO);
+            
+            // Beispiel 167: Definition der Funktionen onEnterNode und onExitNode
+            /**
+             * Indexserver calls this function if a workflow node is activated
+             * @param ci ClientInfo object with language, country and ticket
+             * @param userId The calling users ID (Integer)
+             * @param workflow WFDiagram object
+             * @param nodeId The activated node ID (Integer)
+             * @return Cycle nodes: true, to repeat the cycle.
+             */
+            // function onEnterNode(ci, userId, workflow, nodeId) {
+            // }
+            
+            /**
+             * Indexserver calls this function if a workflow node is
+             * deactivated
+             * @param ci ClientInfo object with language, country and ticket
+             * @param userId The calling users ID (Integer) *
+             * @param workflow WFDiagram object
+             * @param nodeId The activated node ID (Integer)
+             */
+            // function onExitNode(ci, userId, workflow, nodeId) {
+            // }
+            
+            // Beispiel 168: Verschlagwortungsdaten im Skript ändern
+            /*
+            function onEnterNode(ci, userId, workflow, nodeId) {
+            var ed = ix.checkoutSord(ci, workflow.getObjId(), CONST.EDIT_INFO.mbSord, CONST.LOCK.YES);
+            ed.getSord().getDesc() = "This text was written inside the Script";
+            ix.checkinSord(ci, ed.getSord(), CONST.SORD.mbAll, CONST.LOCK.YES);
+            }
+            */
+            
+            // Beispiel 169: Dokumentzuordnung im Workflow-Skript ändern
+            /*
+            function onExitNode(ci, userId, workflow, nodeId) {
+            if (log.isDebugEnabled()) log.debug("onExitNode(");
+            
+            var ed = ix.checkoutSord(ci, workflow.getObjId(), CONST.EDIT_INFO.mbSord, CONST.LOCK.YES);
+            
+            // new object ID is found in sord.getDesc()
+            var newObjId = ed.getSord().getDesc();
+            workflow.getObjId()=newObjId;
+            if (log.isDebugEnabled()) log.debug("new wf.getObjId()=" + newObjId);
+            
+            // update internal workflow data
+            workflow.dbHelper.updateDisplayMembers(true);
+            
+            if (log.isDebugEnabled()) log.debug(")onExitNode");
+            }
+            */
+            
+            // Beispiel 170: Anwender und Datumsangaben im Skript ändern
+            /*
+            function onExitNode(ci, userId, workflow, nodeId) {
+            workflow.getNodes()[2].userName = "Maria";
+            workflow.getNodes()[2].userDelayDateIso = "20091211100908";
+            workflow.dbHelper.updateDisplayMembers(true);
+            }
+            */
+            
+            // Beispiel 171: Knoten im Skript aktivieren
+            /*
+            function onExitNode(ci, userId, workflow, nodeId) {
+            for (var i = 0; i < workflow.getNodes().length; i++) {
+            var node = workflow.getNodes()[i];
+            if (node.getName() == "Invocie accepted") {
+            node.isNext = 1;
+            break;
+            }
+            }
+            }
+            */
+            
+            // Beispiel 172: Workflow-Skript zum Einfügen eines Knotens
+            /*
+            function onExitNode(ci, userId, workflow, nodeId) {
+            if (log.isDebugEnabled()) log.debug("onExitNode(");
+            
+            // (1) Initialize a new node object
+            var node = ix.createWFNode(ci, 0, Packages.de.elo.ix.client.WFNodeC.TYPE_PERSONNODE);
+            node.getName() = "New"; node.userName = "Administrator";
+            
+            // (2) Place the new node to the right of the dummy node.
+            var dummyNode = getNode(workflow, 2);
+            node.posX = dummyNode.posX + 200;
+            node.posY = dummyNode.posY;
+            
+            // (3) Add the node (node.getId() is set)
+            addNode(workflow, node);
+            
+            // (4) Remove the association from "Dummy" to "End"
+            removeAssoc(workflow, 2, 3);
+            
+            // (5) Add an association from "Dummy" to "New"
             addAssoc(workflow, 2, node.getId());
-
-            // (6) Add an association from "New" to "End" 
-            addAssoc(workflow, node.getId(), 3); 
-
-            // (7) Update internal helper objects 
-            workflow.dbHelper.updateDisplayMembers(true); 
-
-            if (log.isDebugEnabled()) log.debug(")onExitNode"); 
-        }
-        */
-
-        // Beispiel 173: Skriptfunktion getNode liefert Knotenobjekt zu gegebener ID
-
-        /** 
-         * Return the node object with the given ID. 
-         * @param workflow WFDiagram object 
-         * @param nodeId ID of the workflow node 
-         * @return node object 
-         * @throws Exception, if node does not exist. 
-         */
-        /*
-        function getNode(workflow, nodeId) { 
-            for (var i = 0; i < workflow.getNodes().length; i++) { 
-                var node = workflow.getNodes()[i]; 
-                if (node.getId() == nodeId) { 
-                    return node; 
-                } 
-            } 
-            throw "WFScript: nodeId=" + nodeId + " not found in workflow.getId()=" + workflow.getId() + ", .getName()=" + workflow.getName(); 
-        }
-        */
-
-        // Beispiel 174: Skriptfunktion zum Erweitern des Arrays WFDiagram.getNodes()
-
-        /** 
-         * Adds a node to the workflow. 
-         * Assigns a unique node ID. 
-         * @param workflow WFDiagram object 
-         * @param node Node object 
-         */ 
-        /*
-        function addNode(workflow, node) { 
-            if (log.isDebugEnabled()) log.debug("addNode("); 
-
-            // Copy workflow nodes to JavaScript array 
-            var jsnodes = []; 
-            for (var i = 0; i < workflow.getNodes().length; i++) { 
-                jsnodes.push(workflow.getNodes()[i]); 
+            
+            // (6) Add an association from "New" to "End"
+            addAssoc(workflow, node.getId(), 3);
+            
+            // (7) Update internal helper objects
+            workflow.dbHelper.updateDisplayMembers(true);
+            
+            if (log.isDebugEnabled()) log.debug(")onExitNode");
             }
-
-            // Compute the maximum node ID 
-            var maxId = 1; 
-            for (var i = 0; i < jsnodes.length; i++) { 
-                if (jsnodes[i].getId() > maxId) { 
-                    maxId = jsnodes[i].getId(); 
-                } 
-            } 
-
-            // Assign unique node ID: max+1 
-            node.getId() = maxId + 1; 
-            if (log.isDebugEnabled()) log.debug("node=" + node); 
-
-            // Add node to JavaScript array 
-            jsnodes.push(node); 
-
-            // Convert JavaScript array to Java array 
-            workflow.getNodes() = jsnodes; 
-
-            if (log.isDebugEnabled()) log.debug(")addNode"); 
-        }
-        */
-
-        // Beispiel 175: Skriptfunktion zum Löschen einer Knotenverbindung
-
-        /** 
-         * Remove the given association from the node matrix. 
-         * @param workflow WFDiagram object 
-         * @param fromId ID of the source node. 
-         * @param toId ID of the destination node. 
-         * @param type Optional, association type, default: 
-         Packages.de.elo.ix.client.WFNodeMatrixC.ALWAYS; 
-         */ 
-        /*
-        function removeAssoc(workflow, fromId, toId, type) { 
-            if (log.isDebugEnabled()) log.debug("removeAssoc(" + fromId + "->" + toId); 
-
-            // JavaScript array for associations 
-            var assocs = []; 
-
-            // Copy remaining associations to the JavaScript array 
-            for (var i = 0; i < workflow.getMatrix().getAssocs().length; i++) { 
-                var assoc = workflow.getMatrix().getAssocs()[i]; 
-                if (assoc.nodeFrom != fromId || assoc.nodeTo != toId || (type && assoc.getType() != type)) { 
-                    assocs.push(assoc); 
-                } 
+            */
+            
+            // Beispiel 173: Skriptfunktion getNode liefert Knotenobjekt zu gegebener ID
+            
+            /**
+             * Return the node object with the given ID.
+             * @param workflow WFDiagram object
+             * @param nodeId ID of the workflow node
+             * @return node object
+             * @throws Exception, if node does not exist.
+             */
+            /*
+            function getNode(workflow, nodeId) {
+            for (var i = 0; i < workflow.getNodes().length; i++) {
+            var node = workflow.getNodes()[i];
+            if (node.getId() == nodeId) {
+            return node;
             }
-
-            // Convert JavaScript array to Java array 
-            workflow.getMatrix().getAssocs() = assocs; 
-
-            // Discard internal helper objects 
-            workflow.getMatrix().dbHelper = null; 
-
-            if (log.isDebugEnabled()) log.debug(")removeAssoc"); 
-        }
-        */
-
-        // Beispiel 176: Skriptfunktion zum Einfügen einer Knotenverbindung
-
-        /** 
-         * Adds a new association to the node matrix. 
-         * @param workflow WFDiagram object 
-         * @param fromId ID of the source node. 
-         * @param toId ID of the destination node. 
-         * @param type Association type, see Packages.de.elo.ix.client.WFNodeMatrixC 
-         */ 
-        /*
-        function addAssoc(workflow, fromId, toId, type) { 
-            if (log.isDebugEnabled()) log.debug("addAssoc(" + fromId + "->" + toId); 
-
-            // Create new association object 
-            var ass = new Packages.de.elo.ix.client.WFNodeAssoc(); 
-            ass.nodeFrom = fromId; 
-            ass.nodeTo = toId; 
-            if (type) { 
-                ass.getType() = type; 
-            } else { 
-                ass.getType() = Packages.de.elo.ix.client.WFNodeMatrixC.ALWAYS; 
             }
-
-            // Copy workflow assocs into a JavaScript array. 
-            var assocs = []; 
-            for (var i = 0; i < workflow.getMatrix().getAssocs().length; i++) { 
-                assocs.push(workflow.getMatrix().getAssocs()[i]); 
-            } 
-
-            // Add new association 
-            assocs.push(ass); 
-
-            // Convert JavaScript array to Java array 
-            workflow.getMatrix().getAssocs() = assocs; 
-
+            throw "WFScript: nodeId=" + nodeId + " not found in workflow.getId()=" + workflow.getId() + ", .getName()=" + workflow.getName();
+            }
+            */
+            
+            // Beispiel 174: Skriptfunktion zum Erweitern des Arrays WFDiagram.getNodes()
+            
+            /**
+             * Adds a node to the workflow.
+             * Assigns a unique node ID.
+             * @param workflow WFDiagram object
+             * @param node Node object
+             */
+            /*
+            function addNode(workflow, node) {
+            if (log.isDebugEnabled()) log.debug("addNode(");
+            
+            // Copy workflow nodes to JavaScript array
+            var jsnodes = [];
+            for (var i = 0; i < workflow.getNodes().length; i++) {
+            jsnodes.push(workflow.getNodes()[i]);
+            }
+            
+            // Compute the maximum node ID
+            var maxId = 1;
+            for (var i = 0; i < jsnodes.length; i++) {
+            if (jsnodes[i].getId() > maxId) {
+            maxId = jsnodes[i].getId();
+            }
+            }
+            
+            // Assign unique node ID: max+1
+            node.getId() = maxId + 1;
+            if (log.isDebugEnabled()) log.debug("node=" + node);
+            
+            // Add node to JavaScript array
+            jsnodes.push(node);
+            
+            // Convert JavaScript array to Java array
+            workflow.getNodes() = jsnodes;
+            
+            if (log.isDebugEnabled()) log.debug(")addNode");
+            }
+            */
+            
+            // Beispiel 175: Skriptfunktion zum Löschen einer Knotenverbindung
+            
+            /**
+             * Remove the given association from the node matrix.
+             * @param workflow WFDiagram object
+             * @param fromId ID of the source node.
+             * @param toId ID of the destination node.
+             * @param type Optional, association type, default:
+             * Packages.de.elo.ix.client.WFNodeMatrixC.ALWAYS;
+             */
+            /*
+            function removeAssoc(workflow, fromId, toId, type) {
+            if (log.isDebugEnabled()) log.debug("removeAssoc(" + fromId + "->" + toId);
+            
+            // JavaScript array for associations
+            var assocs = [];
+            
+            // Copy remaining associations to the JavaScript array
+            for (var i = 0; i < workflow.getMatrix().getAssocs().length; i++) {
+            var assoc = workflow.getMatrix().getAssocs()[i];
+            if (assoc.nodeFrom != fromId || assoc.nodeTo != toId || (type && assoc.getType() != type)) {
+            assocs.push(assoc);
+            }
+            }
+            
+            // Convert JavaScript array to Java array
+            workflow.getMatrix().getAssocs() = assocs;
+            
             // Discard internal helper objects
-            workflow.getMatrix().dbHelper = null; 
-
-            if (log.isDebugEnabled()) log.debug(")addAssoc"); 
+            workflow.getMatrix().dbHelper = null;
+            
+            if (log.isDebugEnabled()) log.debug(")removeAssoc"); 
+            }
+            */
+            
+            // Beispiel 176: Skriptfunktion zum Einfügen einer Knotenverbindung
+            
+            /**
+             * Adds a new association to the node matrix.
+             * @param workflow WFDiagram object
+             * @param fromId ID of the source node.
+             * @param toId ID of the destination node.
+             * @param type Association type, see Packages.de.elo.ix.client.WFNodeMatrixC
+             */
+            /*
+            function addAssoc(workflow, fromId, toId, type) {
+            if (log.isDebugEnabled()) log.debug("addAssoc(" + fromId + "->" + toId);
+            
+            // Create new association object
+            var ass = new Packages.de.elo.ix.client.WFNodeAssoc();
+            ass.nodeFrom = fromId;
+            ass.nodeTo = toId;
+            if (type) {
+            ass.getType() = type;
+            } else {
+            ass.getType() = Packages.de.elo.ix.client.WFNodeMatrixC.ALWAYS;
+            }
+            
+            // Copy workflow assocs into a JavaScript array.
+            var assocs = [];
+            for (var i = 0; i < workflow.getMatrix().getAssocs().length; i++) {
+            assocs.push(workflow.getMatrix().getAssocs()[i]);
+            }
+            
+            // Add new association
+            assocs.push(ass);
+            
+            // Convert JavaScript array to Java array
+            workflow.getMatrix().getAssocs() = assocs;
+            
+            // Discard internal helper objects
+            workflow.getMatrix().dbHelper = null;
+            
+            if (log.isDebugEnabled()) log.debug(")addAssoc");
+            }
+            */
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
         }
-        */
-
-        
     }
 
-    static void Wiedervorlage() throws RemoteException {
+    static void Wiedervorlage() {
         IXConnFactory connFact = new IXConnFactory("http://srvpdevbs01vm:8030/ix-common/ix", "Wiedervorlage", "1.0");
         // IXConnection conn = connFact.create("Administrator", "ELObs!dev", "localhost", null);
         // IXConnection conn = connFact.create("NormalerUser", "elo", "localhost", null);
         // IXConnection conn = connFact.create("Unittest", "elo", "localhost", null);
-        IXConnection conn = connFact.create("Fritz", "", "localhost", null);
+        IXConnection conn = (IXConnection) new Object();
+        try {
+            conn = connFact.create("Fritz", "", "localhost", null);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         
         // Beispiel 177: Wiedervorlagetermin erstellen
         String objId = "99328";
         String[] receiverIds = new String[] { "Ruberg", "Fritz" }; 
 
         Date dt = new Date(2017, 02, 01); 
-        Reminder remi = conn.ix().createReminder(objId); 
+        Reminder remi = new Reminder(); 
+        try {
+            remi = conn.ix().createReminder(objId);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         remi.setName("Reapplication"); 
         remi.setPromptDateIso(conn.dateToIso(dt)); 
         remi.setPrio(UserTaskPriorityC.HIGHEST); 
         remi.setDesc("..."); 
 
-        int[] ids = conn.ix().checkinReminder(remi, receiverIds, false, LockC.NO); 
+        int[] ids = new int[]{}; 
+        try {
+            ids = conn.ix().checkinReminder(remi, receiverIds, false, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         System.out.println("Created " + ids.length + " reminders");
 
         // Beispiel 178: Wiedervorlagetermine auflisten
@@ -3717,7 +4172,12 @@ public class IndexServer1 {
         findInfo.setHighestPriority(UserTaskPriorityC.HIGHEST);
 
         int idx = 0; 
-        FindResult fr = conn.ix().findFirstTasks(findInfo, 1000);
+        FindResult fr = new FindResult();
+        try {
+            fr = conn.ix().findFirstTasks(findInfo, 1000);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         while (true) { 
             for (UserTask ut : fr.getTasks()) { 
                 remi = ut.getReminder(); 
@@ -3734,33 +4194,46 @@ public class IndexServer1 {
             if (!fr.isMoreResults()){ 
                 break; 
             } 
-            fr = conn.ix().findNextTasks(fr.getSearchId(), idx, 1000);
+            try {
+                fr = conn.ix().findNextTasks(fr.getSearchId(), idx, 1000);
+            } catch (RemoteException ex) {
+                ex.printStackTrace();
+            }
         } 
-        conn.ix().findClose(fr.getSearchId());
-
-        // Beispiel 179: Wiedervorlagetermin bearbeiten
-        /*
-        int reminderId = remi.getId();        
-        remi = conn.ix().checkoutReminders(new int[] { reminderId }, LockC.YES)[0];
-
-        remi.setReceiverId(conn.getUserId()); 
-        remi.setReceiverName(""); 
-        remi.setPrio(UserTaskPriorityC.LOWEST); 
-        remi.setDesc("Take over"); 
-        conn.ix().checkinReminder(remi, null, false, LockC.YES);
-        */
-        // Beispiel 180: Wiedervorlagetermin löschen
-        /*
-        conn.ix().deleteReminders(new int[] { reminderId }, LockC.YES);
-        */
+        try {
+            conn.ix().findClose(fr.getSearchId());
+            
+            // Beispiel 179: Wiedervorlagetermin bearbeiten
+            /*
+            int reminderId = remi.getId();
+            remi = conn.ix().checkoutReminders(new int[] { reminderId }, LockC.YES)[0];
+            
+            remi.setReceiverId(conn.getUserId());
+            remi.setReceiverName("");
+            remi.setPrio(UserTaskPriorityC.LOWEST);
+            remi.setDesc("Take over");
+            conn.ix().checkinReminder(remi, null, false, LockC.YES);
+            */
+            // Beispiel 180: Wiedervorlagetermin löschen
+            /*
+            conn.ix().deleteReminders(new int[] { reminderId }, LockC.YES);
+            */
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
     }
 
-    static void JavaScript() throws RemoteException {
+    static void JavaScript() {
         IXConnFactory connFact = new IXConnFactory("http://srvpdevbs01vm:8030/ix-common/ix", "JavaScript", "1.0");
         // IXConnection conn = connFact.create("Administrator", "ELObs!dev", "localhost", null);
         // IXConnection conn = connFact.create("NormalerUser", "elo", "localhost", null);
-        IXConnection conn = connFact.create("Unittest", "elo", "localhost", null);
-        // IXConnection conn = connFact.create("Fritz", "", "localhost", null);
+        IXConnection conn = (IXConnection) new Object();
+        try {
+            conn = connFact.create("Unittest", "elo", "localhost", null);
+            // IXConnection conn = connFact.create("Fritz", "", "localhost", null);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Beispiel 181: Workflow-Skripte installieren
         String[] fileNames = new String[] { "e:\\temp\\file1.js", "e:\\temp\\file2.js" };
@@ -3773,12 +4246,17 @@ public class IndexServer1 {
     /// </summary> 
     /// <param name="conn">IXConnection</param> 
     /// <param name="fileNames">File names</param>
-    private  static void InsertScripts(IXConnection conn, String[] fileNames) throws RemoteException {
+    private  static void InsertScripts(IXConnection conn, String[] fileNames) {
         // Destination folder 
         String scriptFolder = "/_ALL/Tutorial"; 
 
         // Get destination script folder in the archive 
-        int scriptFolderId = MakeArcPath(conn, conn.getCONST().getSORD().getGUID_IX_SCRIPTING_BASE(), scriptFolder); 
+        int scriptFolderId = 0; 
+        try {
+            scriptFolderId = MakeArcPath(conn, conn.getCONST().getSORD().getGUID_IX_SCRIPTING_BASE(), scriptFolder);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Insert script files 
         for (String fileName : fileNames) { 
@@ -3786,9 +4264,13 @@ public class IndexServer1 {
             InsertScriptFile(conn, scriptFolderId, scriptFile); 
         } 
 
-        // Indexserver must be reload in order to use the new 
-        // script(s) in a workflow. 
-        conn.ix().reload();
+        try {
+            // Indexserver must be reload in order to use the new
+            // script(s) in a workflow.
+            conn.ix().reload();
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
     }
 
     /// <summary> 
@@ -3797,21 +4279,25 @@ public class IndexServer1 {
     /// <param name="conn">IXConnection</param> 
     /// <param name="scriptFolderId">Destination folder ID</param>
     /// <param name="scriptFile">Script file to be inserted</param>
-    private static void InsertScriptFile(IXConnection conn, int scriptFolderId, File scriptFile) throws RemoteException { 
+    private static void InsertScriptFile(IXConnection conn, int scriptFolderId, File scriptFile) { 
         // Sord name is set to script file name without 
         // directory and extension 
         String sordName = scriptFile.getName();
         int p = sordName.lastIndexOf('.'); 
         if (p >= 0) sordName = sordName.substring(0, p); 
 
-        EditInfo ed; 
+        EditInfo ed = new EditInfo(); 
         try { 
             // If the script exists, a new version is stored 
             ed = conn.ix().checkoutSord( "ARCPATH[" + scriptFolderId + "]:/" + sordName, EditInfoC.mbSordDocAtt, LockC.YES); 
         } 
         catch (RemoteException e) { 
-            // The script does not exists: create a new document 
-            ed = conn.ix().createDoc("" + scriptFolderId, "", "", EditInfoC.mbSordDocAtt); 
+            try {
+                // The script does not exists: create a new document
+                ed = conn.ix().createDoc("" + scriptFolderId, "", "", EditInfoC.mbSordDocAtt);
+            } catch (RemoteException ex) {
+                ex.printStackTrace();
+            }
             ed.getSord().setName(sordName); 
         }
 
@@ -3836,11 +4322,20 @@ public class IndexServer1 {
             ex.printStackTrace();
         }
         ed.getDocument().getDocs()[0].getFileData().setData(data);
-        conn.ix().checkinDocEnd(ed.getSord(), SordC.mbAll, ed.getDocument(), LockC.YES);
+        try {
+            conn.ix().checkinDocEnd(ed.getSord(), SordC.mbAll, ed.getDocument(), LockC.YES);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
     }
 
-    static void FindWFVersion(IXConnection conn, String flowId) throws RemoteException {
-        WFVersion[] versions = conn.ix().getWorkflowTemplateVersions(flowId, false); 
+    static void FindWFVersion(IXConnection conn, String flowId) {
+        WFVersion[] versions = new  WFVersion[]{}; 
+        try {
+            versions = conn.ix().getWorkflowTemplateVersions(flowId, false);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         for (WFVersion version : versions) { 
             System.out.println("id=" + version.getId() + ", version=" + version.getVersion() + 
                                                    ", is work-version=" + (version.getId() == 0) + 
@@ -3850,7 +4345,7 @@ public class IndexServer1 {
         }
     }
 
-    static void FindWfLoop(IXConnection conn, FindWorkflowInfo findWfInfo) throws RemoteException {
+    static void FindWfLoop(IXConnection conn, FindWorkflowInfo findWfInfo) {
         int maxWf = 100;
         int idxWf = 0;
         FindResult fr = null;
@@ -3867,9 +4362,16 @@ public class IndexServer1 {
                 fr = conn.ix().findNextWorkflows(fr.getSearchId(), idxWf, maxWf);
             }
         }
+        catch (RemoteException ex) {
+            ex.printStackTrace();
+        }        
         finally {
             if (fr != null) {
-                conn.ix().findClose(fr.getSearchId());
+                try {
+                    conn.ix().findClose(fr.getSearchId());
+                } catch (RemoteException ex) {
+                    ex.printStackTrace();
+                }
             }
         }
     }
@@ -4062,18 +4564,22 @@ public class IndexServer1 {
         return Integer.toString(sord.getId()); 
     }
 
-    private static void CleanupLoop(IXConnection conn, DeleteOptions delOpts) throws RemoteException { 
-        if (conn.ix().cleanupStart(delOpts)) { 
-            JobState jobState = conn.ix().cleanupState(); 
-            while (jobState != null && jobState.isJobRunning()) { 
-                System.out.println("done=" + Long.toString(jobState.getCountProcessed()) + ", errors=" + Long.toString(jobState.getCountErrors())); 
-                ThreadSleep(1000); 
-                jobState = conn.ix().cleanupState(); 
-            } 
-        } 
+    private static void CleanupLoop(IXConnection conn, DeleteOptions delOpts) { 
+        try {
+            if (conn.ix().cleanupStart(delOpts)) {
+                JobState jobState = conn.ix().cleanupState();
+                while (jobState != null && jobState.isJobRunning()) {
+                    System.out.println("done=" + Long.toString(jobState.getCountProcessed()) + ", errors=" + Long.toString(jobState.getCountErrors()));
+                    ThreadSleep(1000);
+                    jobState = conn.ix().cleanupState();
+                } 
+            }
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
     }
 
-    private static void DumpKeywordList(IXConnection conn, int indent, Keyword kw) throws RemoteException { 
+    private static void DumpKeywordList(IXConnection conn, int indent, Keyword kw) { 
         // print keyword ID and text 
         StringBuilder sbuf = new StringBuilder(); 
         for (int i = 0; i < indent; i++) sbuf.append(" "); 
@@ -4084,7 +4590,11 @@ public class IndexServer1 {
 
         // read children, if not already read 
         if (kw.getChildren() == null) { 
-            kw = conn.ix().checkoutKeywords(new String[] { kw.getId() }, KeywordC.mbView, 1000, LockC.NO)[0]; 
+            try { 
+                kw = conn.ix().checkoutKeywords(new String[] { kw.getId() }, KeywordC.mbView, 1000, LockC.NO)[0];
+            } catch (RemoteException ex) {
+                ex.printStackTrace();
+            }
         } 
 
         // dump children 
@@ -4094,16 +4604,22 @@ public class IndexServer1 {
     }
 
     // Beispiel 85: Verschlagwortungsgeschichte lesen
-    public static void ExampleSordHist(IXConnection conn, String parentId) throws RemoteException { 
+    public static void ExampleSordHist(IXConnection conn, String parentId) { 
         String maskId = "E-Mail"; 
 
         // Create a new Sord object 
-        EditInfo ed = conn.ix().createDoc(parentId, maskId, "", EditInfoC.mbSord); 
-        Sord sord = ed.getSord(); 
-        sord.setName("SordHist example"); 
-        sord.getObjKeys()[0].setData(new String[] { "fritz@elo.com" });
-        sord.getObjKeys()[1].setData(new String[] { "maria@elo.com" }); 
-        sord.setId(conn.ix().checkinSord(sord, SordC.mbAll, LockC.NO)); 
+        EditInfo ed; 
+        Sord sord = new Sord();
+        try {
+            ed = conn.ix().createDoc(parentId, maskId, "", EditInfoC.mbSord);
+            sord = ed.getSord(); 
+            sord.setName("SordHist example"); 
+            sord.getObjKeys()[0].setData(new String[] { "fritz@elo.com" });
+            sord.getObjKeys()[1].setData(new String[] { "maria@elo.com" }); 
+            sord.setId(conn.ix().checkinSord(sord, SordC.mbAll, LockC.NO)); 
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // History is empty for new Sord objects 
         DumpSordHistory(conn, sord.getGuid()); 
@@ -4115,7 +4631,11 @@ public class IndexServer1 {
         // Modify the short description 
         System.out.println("modify name"); 
         sord.setName(sord.getName() + "- modified name"); 
-        sord.setId(conn.ix().checkinSord(sord, SordC.mbAll, LockC.NO)); 
+        try { 
+            sord.setId(conn.ix().checkinSord(sord, SordC.mbAll, LockC.NO));
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         // Sleep some seconds, because history is written in background 
         System.out.println("sleep some seconds"); 
@@ -4125,8 +4645,13 @@ public class IndexServer1 {
         DumpSordHistory(conn, sord.getGuid()); 
     }
 
-    private static void DumpSordHistory(IXConnection conn, String objId) throws RemoteException { 
-        SordHist[] sordHistory = conn.ix().checkoutSordHistory(objId); 
+    private static void DumpSordHistory(IXConnection conn, String objId) { 
+        SordHist[] sordHistory = new SordHist[]{}; 
+        try {
+            sordHistory = conn.ix().checkoutSordHistory(objId);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         System.out.println("SordHist.length=" + sordHistory.length); 
 
         for (SordHist sordHist : sordHistory) { 
@@ -4139,8 +4664,13 @@ public class IndexServer1 {
         } 
     }
 
-    public static SortedMap<Integer, Color> MakeColorCache(IXConnection conn) throws RemoteException { 
-        ColorData[] colors = conn.ix().checkoutColors(LockC.NO); 
+    public static SortedMap<Integer, Color> MakeColorCache(IXConnection conn) { 
+        ColorData[] colors = new ColorData[]{}; 
+        try {
+            colors = conn.ix().checkoutColors(LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         SortedMap<Integer, Color> colorMap = new TreeMap<>(); 
         for (ColorData color : colors) { 
             int red = color.getRGB() & 0xff; 
@@ -4229,62 +4759,121 @@ public class IndexServer1 {
         } 
     }
 
-    static void AnwenderOrdner() throws RemoteException {
+    static void AnwenderOrdner() {
 
         IXConnFactory connFact = new IXConnFactory("http://srvpdevbs01vm:8030/ix-common/ix", "AnwenderOrdner", "1.0");
-        IXConnection conn = connFact.create("Administrator", "ELObs!dev", "localhost", null);
+        IXConnection conn = (IXConnection) new Object();
+        try {
+            conn = connFact.create("Administrator", "ELObs!dev", "localhost", null);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
         String userId = Integer.toString(conn.getUserId());
         System.out.println("userId=" + userId);
 
-        UserInfo user = conn.ix().checkoutUsers(new String[] { userId }, CheckoutUsersC.BY_IDS_RAW, LockC.YES)[0];
+        UserInfo user = new UserInfo();
+        try {
+            user = conn.ix().checkoutUsers(new String[] { userId }, CheckoutUsersC.BY_IDS_RAW, LockC.YES)[0];
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         String userGuid = user.getGuid();
         System.out.println("user=" + user);
         System.out.println("user.getGuid()=" + user.getGuid());
         System.out.println("user.getName()=" + user.getName());
 
         // Anwenderordner über User-ID finden 
-        Sord sord1 = conn.ix().checkoutSord("OKEY:ELOUSERID=" + userId, EditInfoC.mbSord, LockC.NO).getSord();
+        Sord sord1 = new Sord();
+        try {
+            sord1 = conn.ix().checkoutSord("OKEY:ELOUSERID=" + userId, EditInfoC.mbSord, LockC.NO).getSord();
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         System.out.println("sord1.getName()=" + sord1.getName());
 
         // Anwenderordner über User-GUID finden  
-        Sord sord2 = conn.ix().checkoutSord("OKEY:ELOUSERGUID=" + userGuid, EditInfoC.mbSord, LockC.NO).getSord();
+        Sord sord2 = new Sord();
+        try {
+            sord2 = conn.ix().checkoutSord("OKEY:ELOUSERGUID=" + userGuid, EditInfoC.mbSord, LockC.NO).getSord();
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         System.out.println("sord2.getName()=" + sord2.getName());
 
         // Ordner Anwendername/data  
-        Sord sord3 = conn.ix().checkoutSord("OKEY:ELOINDEX=" + conn.getCONST().getSORD().getELOINDEX_USER_FOLDER_DATA() + userGuid, SordC.mbMin, LockC.NO);
+        Sord sord3 = new Sord();
+        try {
+            sord3 = conn.ix().checkoutSord("OKEY:ELOINDEX=" + conn.getCONST().getSORD().getELOINDEX_USER_FOLDER_DATA() + userGuid, SordC.mbMin, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         System.out.println("sord3.getName()=" + sord3.getName());
 
         // Ordner Anwendername/data/elo.profile  
-        Sord sord4 = conn.ix().checkoutSord("OKEY:ELOINDEX=" + conn.getCONST().getSORD().getELOINDEX_USER_FOLDER_DATA_PROFILE() + userGuid, SordC.mbMin, LockC.NO);
+        Sord sord4 = new Sord();
+        try {
+            sord4 = conn.ix().checkoutSord("OKEY:ELOINDEX=" + conn.getCONST().getSORD().getELOINDEX_USER_FOLDER_DATA_PROFILE() + userGuid, SordC.mbMin, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         System.out.println("sord4.getName()=" + sord4.getName());
 
         // Ordner Anwendername/Persönlicher Bereich  
-        Sord sord5 = conn.ix().checkoutSord("OKEY:ELOINDEX=" + conn.getCONST().getSORD().getELOINDEX_USER_FOLDER_PRIVATE() + userGuid, SordC.mbMin, LockC.NO);
+        Sord sord5 = new Sord();
+        try {
+            sord5 = conn.ix().checkoutSord("OKEY:ELOINDEX=" + conn.getCONST().getSORD().getELOINDEX_USER_FOLDER_PRIVATE() + userGuid, SordC.mbMin, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         System.out.println("sord5.getName()=" + sord5.getName());
 
         // Ordner Anwendername/Postbox  
-        Sord sord6 = conn.ix().checkoutSord("OKEY:ELOINDEX=" + conn.getCONST().getSORD().getELOINDEX_USER_FOLDER_INBOX() + userGuid, SordC.mbMin, LockC.NO);
+        Sord sord6 = new Sord();
+        try {
+            sord6 = conn.ix().checkoutSord("OKEY:ELOINDEX=" + conn.getCONST().getSORD().getELOINDEX_USER_FOLDER_INBOX() + userGuid, SordC.mbMin, LockC.NO);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         System.out.println("sord6.getName()=" + sord6.getName());        
     }
 
-    static void FeedService() throws RemoteException {
+    static void FeedService() {
         IXConnFactory connFact = new IXConnFactory("http://playground.dev.elo/ix-Solutions/ix", "IX-Tutorial", "1.0");
-        IXConnection conn = connFact.create("Administrator", "elo", "localhost",null);
+        IXConnection conn = (IXConnection) new Object();
+        try {
+            conn = connFact.create("Administrator", "elo", "localhost",null);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         System.out.println("ticket=" + conn.getLoginResult().getClientInfo().getTicket());
         System.out.println("IX-Url=" + conn.getEndpointUrl());
 
 
         String userId = Integer.toString(conn.getUserId());
         // UserInfo user = conn.ix().checkoutUsers(new String[] { userId }, CheckoutUsersC.BY_IDS_RAW, LockC.YES)[0];
-        UserInfo user = conn.ix().checkoutUsers(new String[] { "Schenk" }, CheckoutUsersC.BY_IDS_RAW, LockC.YES)[0];
+        UserInfo user = new UserInfo();
+        try {
+            user = conn.ix().checkoutUsers(new String[] { "Schenk" }, CheckoutUsersC.BY_IDS_RAW, LockC.YES)[0];
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
 
-        Action action = conn.getFeedService().createAction(EActionType.UserComment, "2");
+        Action action = new Action();
+        try {
+            action = conn.getFeedService().createAction(EActionType.UserComment, "2");
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
         action.setText("Meine coole Action");
         action.setUserId(user.getId());
         action.setUserGuid(user.getGuid());
         action.setUserName(user.getName());
-        String feedActionId = conn.getFeedService().checkinAction(action, ActionC.mbAll);
+        try {
+            String feedActionId = conn.getFeedService().checkinAction(action, ActionC.mbAll);
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
+        }
     }
 
     private static String DownloadDocumentToString(Sord s, IXConnection ixConn) {
